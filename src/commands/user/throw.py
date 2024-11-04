@@ -15,62 +15,19 @@ FREQUENCY_LIMIT: dict[int, float] = {}
 
 def generate_throw_message(sender_id: int, target: int, success: bool, count: int):
     msg = (
-        UniMessage.text(
-            get_random().choice(
-                (
-                    "怎么有股臭味啊？原来 ",
-                    "",
-                    "突然，",
-                    "在一瞬间，",
-                    "不留神，",
-                    "在背地里偷笑了一下的 ",
-                    "脚滑的 ",
-                    "肯定不是故意的 ",
-                    "肯定是不小心的 ",
-                )
-            )
-        )
+        UniMessage
         .at(user_id=str(sender_id))
         .text(" 向 ")
         .at(user_id=str(target))
-        .text(" 扔出去了一个粑粑小哥，")
+        .text(" 丢出去了一个石墩子！")
     )
     if success:
-        msg.text(
-            get_random().choice(
-                (
-                    "扔中了，粑粑小哥爬到了他的库存里面",
-                    "完美的命中！",
-                    "粑粑小哥奋力跑出加速度，进了他的库存",
-                    "进球了！！！！",
-                    "完美一击！",
-                    "虽然偏了，但粑粑小哥像回旋镖一样命中了他的背后",
-                    "中",
-                    "三分球！",
-                    "这下不用退钱了",
-                    "实心球技术不错！",
-                    "砸中了！",
-                )
-            )
-        )
+        msg.text("\n丢中了！炸得 ").at(target).text(" 的库存是灰飞烟灭，寸草不生，万万石墩尽成灰！").image(path="./res/boom.png")
     else:
         msg.text(
-            get_random().choice(
-                (
-                    "没扔中，粑粑小哥在地里烂掉了",
-                    "偏了一点，下次努力吧！",
-                    "粑粑小哥掉到八目鳗穴里了",
-                    "结果不小心扔错了方向。",
-                    "但在空中消失了",
-                    "结果被龙卷风吸走了",
-                    "却不小心掉到了池塘里面污染水质",
-                    "被空中莫名出现的钢筋挡住了",
-                    "但是却被吸入四维空间碎块了",
-                    "这时候，路边的吹风机突然开始运作，粑粑被弹开了",
-                )
-            )
+            "可惜没扔中。"
         )
-    msg.text(f"（库存还有 {count} 个粑粑小哥）")
+    # msg.text(f"（库存还有 {count} 个粑粑小哥）")
     return msg
 
 
@@ -83,18 +40,7 @@ async def analyze_throw_message(ctx: OnebotContext):
         if isinstance(segment, Text):
             text = segment.text
             for i in (
-                "史",
-                "石",
-                "屎",
-                "粑粑",
-                "💩",
-                "大便",
-                "便便",
-                "大变",
-                "大便",
-                "答辩",
-                "矢",
-                "十",
+                "石墩子"
             ):
                 if i in text:
                     is_poop = True
@@ -156,18 +102,18 @@ async def _(ctx: OnebotContext):
         return
 
     # 扔粑粑
-    success = get_random().random() < 0.5
+    success = get_random().random() < 0.05
 
     async with get_unit_of_work(ctx.sender_id) as uow:
         fuid = await uow.users.get_uid(ctx.sender_id)
         tuid = await uow.users.get_uid(target_qqid)
 
-        poop = await uow.awards.get_aid("粑粑小哥")
+        poop = await uow.awards.get_aid("石墩子")
         if poop is None:
             return
         await use_award(uow, fuid, poop, 1)
         if success:
-            await uow.inventories.give(tuid, poop, 1)
+            await uow.inventories.clear_inventory(tuid)
 
         count = await uow.inventories.get_storage(fuid, poop)
         stats = StatService(uow)

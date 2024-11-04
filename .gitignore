@@ -34,3 +34,5 @@ pyvenv.cfg
 
 # 隐藏代码
 /secret
+
+dist

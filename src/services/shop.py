@@ -123,16 +123,16 @@ class AddSlots(ShopProduct):
         return (await uow.user_catch_time.get_user_time(uid)).slot_count
 
     async def title(self, uow: UnitOfWork, uid: int):
-        return "增加卡槽上限"
+        return "翻倍卡槽上限"
 
     async def description(self, uow: UnitOfWork, uid: int) -> str:
-        return f"增加卡槽上限至{await self._slots(uow, uid) + 1}"
+        return f"翻倍卡槽上限至{await self._slots(uow, uid) * 2}"
 
     async def image(self, uow: UnitOfWork, uid: int):
-        return KagamiResourceManagers.res("add1.png")
+        return KagamiResourceManagers.res("shidunzi.png")
 
     async def price(self, uow: UnitOfWork, uid: int) -> float:
-        return 25 * (2 ** (await self._slots(uow, uid)))
+        return (await self._slots(uow, uid))
 
     async def is_sold_out(self, uow: UnitOfWork, uid: int) -> bool:
         return False
@@ -141,10 +141,11 @@ class AddSlots(ShopProduct):
         return "#97DD80"
 
     def match(self, name: str) -> bool:
-        return name in ["加上限", "增加上限", "增加卡槽上限"]
+        return name in ["翻上限", "翻倍上限", "翻倍卡槽上限"]
 
     async def gain(self, uow: UnitOfWork, uid: int):
-        await uow.users.add_slot_count(uid, 1)
+        ## 翻倍
+        await uow.users.add_slot_count(uid, (await self._slots(uow, uid)))
 
 
 class MergeMachine(ShopProduct):
@@ -153,10 +154,10 @@ class MergeMachine(ShopProduct):
         return "道具"
 
     async def title(self, uow: UnitOfWork, uid: int):
-        return "小哥合成凭证"
+        return "石墩合成凭证"
 
     async def description(self, uow: UnitOfWork, uid: int):
-        return "购买合成小哥机器的使用权"
+        return "购买合成石墩合成机器的使用权"
 
     async def background_color(self, uow: UnitOfWork, uid: int):
         return "#9E9D95"
@@ -165,13 +166,13 @@ class MergeMachine(ShopProduct):
         return 1200
 
     async def image(self, uow: UnitOfWork, uid: int):
-        return KagamiResourceManagers.res("merge_machine.png")
+        return KagamiResourceManagers.res("shidunzi.png")
 
     async def is_sold_out(self, uow: UnitOfWork, uid: int) -> bool:
         return await uow.user_flag.have(uid, "合成")
 
     def match(self, name: str) -> bool:
-        return name in ["小哥合成凭证", "合成小哥凭证", "合成凭证", "合成"]
+        return name in ["石墩合成凭证", "合成石墩凭证", "合成凭证", "合成"]
 
     async def gain(self, uow: UnitOfWork, uid: int):
         await uow.user_flag.add(uid, "合成")

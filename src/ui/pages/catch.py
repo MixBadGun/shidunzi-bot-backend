@@ -12,7 +12,7 @@ T = TypeVar("T")
 
 async def render_catch_failed_message(data: ZhuaData) -> UniMessage[Any]:
     return UniMessage.at(data.user.qqid).text(
-        f" 小哥还没长成，请再等{data.meta.need_time}吧！"
+        f" 石墩子还没长成，请再等{data.meta.need_time}吧！"
     )
 
 

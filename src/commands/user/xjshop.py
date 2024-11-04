@@ -36,7 +36,7 @@ async def shop_default_message(user: UserData, shop: ShopFreezed, money: float):
                         display_box=DisplayBoxData(
                             image=product.image.url,
                             color=product.background_color,
-                            notation_down=f"{int(product.price)}薯片",
+                            notation_down=f"{int(product.price)}墩子",
                             sold_out_overlay=product.is_sold_out,
                             black_overlay=product.is_sold_out,
                         ),
@@ -82,7 +82,7 @@ async def shop_buy_message(
 @limited
 @match_alconna(
     Alconna(
-        "re:(小镜的?|xj) ?(shop|小店|商店)",
+        "re:(石墩子?|sdz) ?(shop|小店|商店)",
         Option(
             "买",
             alias=["购买", "购入", "buy"],

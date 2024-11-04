@@ -106,8 +106,9 @@ class MergeTripleAchievement(Achievement):
 
 
 def register_old_version_achievements():
-    register_achievement(AllOneStarAchievement())
-    register_achievement(NiceCatchAchievement())
-    register_achievement(TimerAchievement())
-    register_achievement(TripleAchivement())
-    register_achievement(MergeTripleAchievement())
+    # register_achievement(AllOneStarAchievement())
+    # register_achievement(NiceCatchAchievement())
+    # register_achievement(TimerAchievement())
+    # register_achievement(TripleAchivement())
+    # register_achievement(MergeTripleAchievement())
+    pass

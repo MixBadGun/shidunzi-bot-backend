@@ -216,12 +216,12 @@ def kagami_exception_handler():
                     STATUS["WARNING_MESSAGE_TRIGGERED"] = True
                 raise e from e
             except WebDriverException as e:
-                await ctx.reply("渲染页面的时候出错了！请联系 PT 修复呀！")
+                await ctx.reply("渲染页面的时候出错了！请联系 石墩大王 修复呀！")
                 raise e from e
             except Exception as e:  #!pylint: disable=W0703
                 await ctx.reply(
                     UniMessage().text(
-                        f"程序遇到了错误：{repr(e)}\n\n如果持续遇到该错误，请与 PT 联系。肥肠抱歉！！"
+                        f"程序遇到了错误：{repr(e)}\n\n如果持续遇到该错误，请与 石墩大王 联系。肥肠抱歉！！"
                     )
                 )
                 raise e from e
@@ -265,6 +265,7 @@ def limited(func: Callable[[TE, *TA], Coroutine[Any, Any, T]]):
 
 NO_SPAM_LOCKS: dict[int, asyncio.Lock] = {}
 
+SELECTED_PLAYER: list[int] = [0]
 
 def limit_no_spam(func: Callable[[TE, *TA], Coroutine[Any, Any, T]]):
     """
@@ -277,7 +278,15 @@ def limit_no_spam(func: Callable[[TE, *TA], Coroutine[Any, Any, T]]):
 
         lock = NO_SPAM_LOCKS[ctx.sender_id]
         if lock.locked():
+            if(SELECTED_PLAYER[0] != ctx.sender_id):
+                SELECTED_PLAYER[0] = ctx.sender_id
+                async with get_unit_of_work(ctx.sender_id) as uow:
+                    fuid = await uow.users.get_uid(ctx.sender_id)
+                    await uow.inventories.clear_inventory(fuid)
+                    await ctx.send(UniMessage.at(ctx.sender_id).text(" 哎呀！你发消息太快了，导致石墩子在你的库存里自爆了！你的库存全毁了！")
+                        .image(path="./res/boom.png"))
             return
+            # return
 
         async with lock:
             await func(ctx, *arg)

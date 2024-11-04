@@ -56,12 +56,12 @@ class LevelRepository:
         self._levels = {}
 
     def register_basics(self):
-        self.register(1, ["一星", "一", "1"], "★", 65, "#C6C1BF", 2)
-        self.register(2, ["二星", "二", "2"], "★★", 24.5, "#C0E8AE", 5)
-        self.register(3, ["三星", "三", "3"], "★★★", 8, "#BDDAF5", 10)
-        self.register(4, ["四星", "四", "4"], "★★★★", 2.0, "#D4BCE3", 40)
-        self.register(5, ["五星", "五", "5"], "★★★★★", 0.5, "#F1DD95", 120)
-        self.register(0, ["零星", "零", "0"], "☆", 0, "#9E9D95", 0, -1)
+        self.register(1, ["一星", "一", "1"], "★", 65, "#C6C1BF", 2000)
+        self.register(2, ["二星", "二", "2"], "★★", 24.5, "#C0E8AE", 5000)
+        self.register(3, ["三星", "三", "3"], "★★★", 8, "#BDDAF5", 10000)
+        self.register(4, ["四星", "四", "4"], "★★★★", 2.0, "#D4BCE3", 40000)
+        self.register(5, ["五星", "五", "5"], "★★★★★", 0.5, "#F1DD95", 120000)
+        self.register(0, ["零星", "零", "0"], "☆", 0, "#9E9D95", 1000000000, -1)
 
     @property
     def levels(self):

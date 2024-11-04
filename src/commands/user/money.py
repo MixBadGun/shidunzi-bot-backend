@@ -6,19 +6,19 @@ from src.core.unit_of_work import get_unit_of_work
 
 
 @listen_message()
-@match_regex("^(mysp|我有多少薯片)$")
+@match_regex("^(mys|我有多少石)$")
 async def _(ctx: MessageContext, _):
     async with get_unit_of_work() as uow:
         uid = await uow.users.get_uid(ctx.sender_id)
         res = await uow.chips.get(uid)
 
-    await ctx.reply(UniMessage(f"你有 {int(res)} 薯片"))
+    await ctx.reply(UniMessage(f"你有 {int(res)} 石"))
 
 
-@listen_message()
-@match_regex("^(mybg|我有多少饼干)$")
-async def _(ctx: MessageContext, _):
-    async with get_unit_of_work() as uow:
-        uid = await uow.users.get_uid(ctx.sender_id)
-        res = await uow.biscuit.get(uid)
-    await ctx.reply(UniMessage(f"你有 {res} 饼干"))
+# @listen_message()
+# @match_regex("^(mybg|我有多少饼干)$")
+# async def _(ctx: MessageContext, _):
+#     async with get_unit_of_work() as uow:
+#         uid = await uow.users.get_uid(ctx.sender_id)
+#         res = await uow.biscuit.get(uid)
+#     await ctx.reply(UniMessage(f"你有 {res} 饼干"))

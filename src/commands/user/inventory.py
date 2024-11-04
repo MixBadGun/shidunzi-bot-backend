@@ -255,7 +255,7 @@ async def _(ctx: MessageContext, res: Arparma[Any]):
 
 
 @listen_message()
-@match_regex("^(mygd|我有多少哥度)$")
+@match_regex("^(mydd|我有多少墩度)$")
 async def _(ctx: MessageContext, _):
     async with get_unit_of_work() as uow:
         uid = await uow.users.get_uid(ctx.sender_id)
@@ -274,4 +274,4 @@ async def _(ctx: MessageContext, _):
         ]
         res = calc_gedu(grouped_aids_filtered)
 
-    await ctx.reply(UniMessage(f"你有 {int(res)} 哥度"))
+    await ctx.reply(UniMessage(f"你有 {int(res)} 墩度"))

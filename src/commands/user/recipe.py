@@ -36,19 +36,19 @@ from src.ui.types.recipe import RecipeInfo
     Alconna(
         "re:(合成|hc)(小哥|xg)?",
         Arg(
-            "第一个小哥", str
+            "第一个石墩", str
         ),  # 因为参数丢失的时候可能会显示名字，所以这里我改成了中文。
-        Arg("第二个小哥", str),
-        Arg("第三个小哥", str),
+        Arg("第二个石墩", str),
+        Arg("第三个石墩", str),
     )
 )
 @require_awake
 async def _(ctx: GroupContext, res: Arparma):
     costs = {0: 20, 1: 3, 2: 8, 3: 12, 4: 15, 5: 17}
 
-    n1 = res.query[str]("第一个小哥")
-    n2 = res.query[str]("第二个小哥")
-    n3 = res.query[str]("第三个小哥")
+    n1 = res.query[str]("第一个石墩")
+    n2 = res.query[str]("第二个石墩")
+    n3 = res.query[str]("第三个石墩")
     if n1 is None or n2 is None or n3 is None:
         return
 
@@ -56,7 +56,7 @@ async def _(ctx: GroupContext, res: Arparma):
         uid = await uow.users.get_uid(ctx.sender_id)
 
         if not await uow.user_flag.have(uid, "合成"):
-            await ctx.reply("你没有买小哥合成凭证，被门口的保安拦住了。")
+            await ctx.reply("你没有买石墩合成凭证，被门口的保安拦住了。")
             return
 
         a1, a2, a3 = await uow.awards.get_aids_strong(n1, n2, n3)
@@ -193,7 +193,7 @@ async def _(ctx: GroupContext, res: Arparma):
         uid = await uow.users.get_uid(ctx.sender_id)
 
         if not await uow.user_flag.have(uid, "合成"):
-            await ctx.reply("你没有买小哥合成凭证，被门口的保安拦住了。")
+            await ctx.reply("你没有买石墩合成凭证，被门口的保安拦住了。")
             return
 
         aid = await uow.awards.get_aid_strong(name)

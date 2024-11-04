@@ -132,16 +132,16 @@ async def try_merge(
 
     result, possibility = await get_merge_result(uow, a1, a2, a3)
 
-    if get_random().random() <= possibility:
-        return result, True
+    # if get_random().random() <= possibility:
+    return result, True
 
-    if get_random().random() <= 0.8:
-        # 粑粑小哥
-        return 89, False
+    # if get_random().random() <= 0.8:
+    #     # 粑粑小哥
+    #     return 89, False
 
-    if get_random().random() <= 0.5:
-        # 对此时有特殊情况，是乱码小哥
-        return -1, False
+    # if get_random().random() <= 0.5:
+    #     # 对此时有特殊情况，是乱码小哥
+    #     return -1, False
 
     result = get_random().choice(list(await uow.awards.get_all_mergeable_zeros()))
 

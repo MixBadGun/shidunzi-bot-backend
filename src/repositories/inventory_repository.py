@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy import delete, insert, select, update
 
 from ..base.repository import DBRepository
@@ -133,3 +134,21 @@ class InventoryRepository(DBRepository):
                 res[aid] = (0, 0)
 
         return res
+
+    async def clear_inventory(
+        self, uid: int, record_used: bool = True
+    ):
+        """
+        清空玩家所有小哥库存
+
+        Args:
+            uid (int): 玩家的id
+        """
+        items = await self.get_inventory_dict(uid)
+        logger.info(items)
+        for aid, num in items.items():
+            sto = num[0]
+            use = num[1]
+            if record_used:
+                use += num[0]
+            await self.set_inventory(uid, aid, 0, use)

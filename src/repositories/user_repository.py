@@ -274,7 +274,7 @@ class ChipsRepository(DBRepository):
 
         current = await self.get(uid)
         if current - chips < 0 and report:
-            raise LackException("薯片", chips, current)
+            raise LackException("墩子", chips, current)
         await self.set(uid, current - chips)
         return current - chips
 
