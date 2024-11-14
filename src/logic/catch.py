@@ -1,8 +1,11 @@
+import math
 from src.base.exceptions import NoAwardException
 from src.common.dataclasses import Pick, Picks
 from src.common.rd import get_random
 from src.core.unit_of_work import UnitOfWork
 from src.services.pool import PoolService
+
+from decimal import Decimal
 
 
 async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
@@ -19,10 +22,11 @@ async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
         Picks: 抓小哥结果的记录
     """
 
-    up_pool_posibility = {1: 0.1, 2: 0.2, 3: 0.4, 4: 0.5, 5: 0.6}
+    up_pool_posibility = {1: 0.1, 2: 0.2, 3: 0.4, 4: 0.5, 5: 0.6, 6: 0.7, 7:0.8 ,8: 0.9, 9: 1}
 
     pool_service = PoolService(uow)
     picked: list[int] = []
+    multi_picked: dict[int, int] = {}
     aids_set = await pool_service.get_aids(uid)
     aids = await uow.awards.group_by_level(aids_set)
 
@@ -40,8 +44,10 @@ async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
     if len(levels) == 0:
         raise NoAwardException()
 
-    # 开始抓小哥
-    for _ in range(count):
+    # 开始抓小哥(优化版)
+    if count > 0:
+        step = int(Decimal(count).log10() + 1)
+    while(count > 0):
         # 对是小哥进行特判
         if await uow.user_flag.have(uid, "是"):
             await uow.user_flag.remove(uid, "是")
@@ -50,6 +56,7 @@ async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
                 pass
             else:
                 picked.append(shi)
+                count -= 1
                 continue
 
         level = get_random().choices(levels, weights)[0]
@@ -63,7 +70,19 @@ async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
                 limited_aids = _grouped[level.lid]
 
         aid = get_random().choice(list(limited_aids))
-        picked.append(aid)
+        mi = step * (1 - 2 ** (8 * get_random().random() - 8))
+        if mi <= 0:
+            mi = 0
+        this_count = int(step * (10 ** (Decimal(mi))))
+        if(this_count > count):
+            this_count = count
+        # while(count > 0 and this_count > 0):
+        if aid not in multi_picked:
+            multi_picked[aid] = 0
+        multi_picked[aid] += this_count
+        # picked.append(aid)
+        count -= this_count
+        # this_count -= 1
 
     new_calculated: set[int] = set()
 
@@ -76,7 +95,25 @@ async def pickAwards(uow: UnitOfWork, uid: int, count: int) -> Picks:
             )
 
         picks.awards[aid].delta += 1
-        picks.money += uow.levels.get_by_id(picks.awards[aid].level).awarding
+        picks.money = int(int(picks.money) + uow.levels.get_by_id(picks.awards[aid].level).awarding)
+
+        if picks.awards[aid].beforeStats == 0 and aid not in new_calculated:
+            picks.money += 20
+            new_calculated.add(aid)
+        elif aid == 35:
+            # 处理百变小哥
+            await handle_baibianxiaoge(uow, uid)
+
+    for aid, num in multi_picked.items():
+        if aid not in picks.awards:
+            picks.awards[aid] = Pick(
+                beforeStats=await uow.inventories.get_stats(uid, aid),
+                delta=0,
+                level=await uow.awards.get_lid(aid),
+            )
+
+        picks.awards[aid].delta += num
+        picks.money = int(int(picks.money) + uow.levels.get_by_id(picks.awards[aid].level).awarding * num)
 
         if picks.awards[aid].beforeStats == 0 and aid not in new_calculated:
             picks.money += 20

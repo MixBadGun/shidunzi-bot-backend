@@ -22,7 +22,7 @@ class StatRecord(Base, BaseMixin):
     stat_type: Mapped[str] = mapped_column(index=True)
     "统计的数据的类别"
 
-    count: Mapped[int] = mapped_column(default=0)
+    count: Mapped[str] = mapped_column(default="0")
     "统计值"
 
     linked_uid = Column(

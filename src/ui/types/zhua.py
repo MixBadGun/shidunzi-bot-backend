@@ -5,10 +5,10 @@ from src.ui.types.common import GetAward, UserData
 
 class ZhuaMeta(BaseModel):
     field_from: int
-    get_chip: int
-    own_chip: int
-    remain_time: int
-    max_time: int
+    get_chip: str
+    own_chip: str
+    remain_time: str
+    max_time: str
     need_time: str
 
 

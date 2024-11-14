@@ -1,3 +1,4 @@
+from decimal import Decimal
 from loguru import logger
 from sqlalchemy import delete, insert, select, update
 
@@ -22,7 +23,7 @@ class InventoryRepository(DBRepository):
         query = (
             update(Inventory)
             .where(Inventory.user_id == uid, Inventory.award_id == aid)
-            .values({Inventory.storage: storage, Inventory.used: used})
+            .values({Inventory.storage: str(storage), Inventory.used: str(used)})
             .returning(Inventory.data_id)
         )
 
@@ -41,8 +42,8 @@ class InventoryRepository(DBRepository):
             await self.session.execute(
                 insert(Inventory).values(
                     {
-                        Inventory.storage: storage,
-                        Inventory.used: used,
+                        Inventory.storage: str(storage),
+                        Inventory.used: str(used),
                         Inventory.user_id: uid,
                         Inventory.award_id: aid,
                     }
@@ -64,7 +65,10 @@ class InventoryRepository(DBRepository):
             Inventory.user_id == uid, Inventory.award_id == aid
         )
 
-        return (await self.session.execute(query)).tuples().one_or_none() or (0, 0)
+        result = (await self.session.execute(query)).tuples().one_or_none()
+        if result is not None:
+            result = (int(Decimal(result[0])), int(Decimal(result[1])))
+        return result or (0, 0)
 
     async def get_storage(self, uid: int, aid: int) -> int:
         """获取玩家某个小哥的库存数量
@@ -128,7 +132,7 @@ class InventoryRepository(DBRepository):
             query = query.filter(Inventory.award_id.in_(aids))
 
         result = await self.session.execute(query)
-        res = {aid: (sto, use) for aid, sto, use in result.tuples()}
+        res = {aid: (int(Decimal(sto)), int(Decimal(use))) for aid, sto, use in result.tuples()}
         for aid in aids:
             if aid not in res:
                 res[aid] = (0, 0)
@@ -147,7 +151,7 @@ class InventoryRepository(DBRepository):
         items = await self.get_inventory_dict(uid)
         logger.info(items)
         for aid, num in items.items():
-            sto = num[0]
+            # sto = num[0]
             use = num[1]
             if record_used:
                 use += num[0]

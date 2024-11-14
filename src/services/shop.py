@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from decimal import Decimal
 
 from src.base.exceptions import ObjectNotFoundException
 from src.base.res import KagamiResourceManagers
@@ -13,7 +14,7 @@ class ShopProductFreezed:
     description: str
     background_color: str
     image: IResource
-    price: float
+    price: int
     is_sold_out: bool
     type: str
 
@@ -39,7 +40,7 @@ class ShopProduct(ABC):
         """商品的背景颜色"""
 
     @abstractmethod
-    async def price(self, uow: UnitOfWork, uid: int) -> float:
+    async def price(self, uow: UnitOfWork, uid: int) -> int:
         """商品的价格"""
 
     @abstractmethod
@@ -105,7 +106,7 @@ class SkinProduct(ShopProduct):
         await uow.skin_inventory.give(uid, self.sid)
 
     def __init__(
-        self, sid: int, name: str, aname: str, price: float, bgc: str
+        self, sid: int, name: str, aname: str, price: int, bgc: str
     ) -> None:
         self.sid = sid
         self._title = name
@@ -120,7 +121,7 @@ class AddSlots(ShopProduct):
         return "道具"
 
     async def _slots(self, uow: UnitOfWork, uid: int) -> int:
-        return (await uow.user_catch_time.get_user_time(uid)).slot_count
+        return int(Decimal(((await uow.user_catch_time.get_user_time(uid)).slot_count)))
 
     async def title(self, uow: UnitOfWork, uid: int):
         return "翻倍卡槽上限"
@@ -131,7 +132,7 @@ class AddSlots(ShopProduct):
     async def image(self, uow: UnitOfWork, uid: int):
         return KagamiResourceManagers.res("shidunzi.png")
 
-    async def price(self, uow: UnitOfWork, uid: int) -> float:
+    async def price(self, uow: UnitOfWork, uid: int) -> int:
         return (await self._slots(uow, uid))
 
     async def is_sold_out(self, uow: UnitOfWork, uid: int) -> bool:
@@ -146,6 +147,39 @@ class AddSlots(ShopProduct):
     async def gain(self, uow: UnitOfWork, uid: int):
         ## 翻倍
         await uow.users.add_slot_count(uid, (await self._slots(uow, uid)))
+
+class AddSpeed(ShopProduct):
+    @property
+    def type(self):
+        return "道具"
+
+    async def _slots(self, uow: UnitOfWork, uid: int) -> int:
+        return (await uow.user_catch_time.get_user_time(uid)).speed_count
+
+    async def title(self, uow: UnitOfWork, uid: int):
+        return "翻倍次数速度"
+
+    async def description(self, uow: UnitOfWork, uid: int) -> str:
+        return f"翻次数递增速度至 10 ^ {await self._slots(uow, uid)} 倍"
+
+    async def image(self, uow: UnitOfWork, uid: int):
+        return KagamiResourceManagers.res("shidunzi.png")
+
+    async def price(self, uow: UnitOfWork, uid: int) -> int:
+        return 10 ** (await self._slots(uow, uid))
+
+    async def is_sold_out(self, uow: UnitOfWork, uid: int) -> bool:
+        return False
+
+    async def background_color(self, uow: UnitOfWork, uid: int):
+        return "#97DD80"
+
+    def match(self, name: str) -> bool:
+        return name in ["翻速度", "翻倍速度", "翻倍次数速度"]
+
+    async def gain(self, uow: UnitOfWork, uid: int):
+        ## 翻倍
+        await uow.users.add_speed_count(uid, 1)
 
 
 class MergeMachine(ShopProduct):
@@ -235,6 +269,7 @@ async def build_xjshop(uow: UnitOfWork) -> ShopService:
     # 注册道具
     service.register(MergeMachine())
     service.register(AddSlots())
+    service.register(AddSpeed())
     # service.register(SignHint())
 
     # 注册皮肤信息

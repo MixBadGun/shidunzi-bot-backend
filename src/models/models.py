@@ -53,8 +53,8 @@ class Inventory(Base, BaseMixin):
 
     user_id = Column(Integer, ForeignKey("catch_user_data.data_id", ondelete="CASCADE"))
     award_id = Column(Integer, ForeignKey("catch_award.data_id", ondelete="CASCADE"))
-    storage: Mapped[int] = mapped_column(default=0)
-    used: Mapped[int] = mapped_column(default=0)
+    storage: Mapped[str] = mapped_column(default="0")
+    used: Mapped[str] = mapped_column(default="0")
 
 
 class User(Base, BaseMixin):
@@ -62,12 +62,14 @@ class User(Base, BaseMixin):
 
     qq_id: Mapped[str] = mapped_column(unique=True, index=True)
 
-    chips: Mapped[float] = mapped_column(default=0.0)
+    chips: Mapped[str] = mapped_column(default="0")
     biscuit: Mapped[int] = mapped_column(default=0, server_default="0")
 
-    slot_empty: Mapped[int] = mapped_column(default=0)
+    slot_empty: Mapped[str] = mapped_column(default="0")
     slot_last_time: Mapped[float] = mapped_column(default=0)
-    slot_count: Mapped[int] = mapped_column(default=1)
+    slot_count: Mapped[str] = mapped_column(default="1")
+
+    speed_count: Mapped[int] = mapped_column(default=1, server_default="1")
 
     # 20240622 追加
     # 和签到有关的两个字段

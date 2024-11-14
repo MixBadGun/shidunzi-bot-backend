@@ -88,7 +88,7 @@ def calc_progress(grouped_awards: Iterable[tuple[Level, list[int | None]]]) -> f
 
 
 def calc_gedu(grouped_awards: Iterable[tuple[Level, list[int | None]]]) -> int:
-    list_gedu = [0, 29, 43, 64, 97, 220]
+    list_gedu = [0, 29, 43, 64, 97, 220, 440, 880, 1760, 3520, 100000000000000000000000000000000000000000000000000000000000000000000]
     # logger.info(grouped_awards)
     your_gedu = 0
     total_gedu = 0
@@ -203,7 +203,7 @@ async def _(ctx: MessageContext, res: Arparma[Any]):
         progress = calc_progress(grouped_aids_filtered)
         your_gedu = calc_gedu(grouped_aids_filtered)
 
-        calculating_groups = (5, 4, 3, 2, 1, 0)
+        calculating_groups = (10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
         if lid is not None:
             calculating_groups = (lid,)
 

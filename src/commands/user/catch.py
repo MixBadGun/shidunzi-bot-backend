@@ -1,3 +1,4 @@
+from decimal import Decimal
 import re
 import time
 from typing import Any
@@ -62,12 +63,12 @@ async def picks(uow: UnitOfWork, user: UserData, count: int | None = None):
     stats = StatService(uow)
 
     if count is None:
-        count = user_time.slot_empty
+        count = Decimal(user_time.slot_empty)
 
-    if count <= 0 and user_time.slot_empty != 0:
+    if count <= 0 and Decimal(user_time.slot_empty) != 0:
         raise KagamiRangeError("抓小哥次数", "大于 0 的数", count)
 
-    count = min(user_time.slot_empty, count)
+    count = min(Decimal(user_time.slot_empty), count)
     count = max(0, count)
 
     pick_result = await pickAwards(uow, uid, count)
@@ -80,7 +81,7 @@ async def picks(uow: UnitOfWork, user: UserData, count: int | None = None):
         catchs.append(
             GetAward(
                 info=await get_award_info(uow, aid, uid),
-                count=pick.delta,
+                count=str(pick.delta),
                 is_new=pick.beforeStats == 0,
             )
         )
@@ -88,21 +89,21 @@ async def picks(uow: UnitOfWork, user: UserData, count: int | None = None):
 
     await uow.users.update_catch_time(
         uid,
-        user_time.slot_empty - spent_count,
+        int(Decimal(user_time.slot_empty) - spent_count),
         user_time.last_updated_timestamp,
     )
     await uow.chips.add(uid, pick_result.money)
-    await stats.zhua_get_chips(uid, int(pick_result.money))
+    await stats.zhua_get_chips(uid, Decimal(pick_result.money))
     pack_id = await uow.user_pack.get_using(uid)
 
     msg = ZhuaData(
         user=user,
         meta=ZhuaMeta(
             field_from=pack_id,
-            get_chip=int(pick_result.money),
-            own_chip=int(await uow.chips.get(uid)),
-            remain_time=user_time.slot_empty - spent_count,
-            max_time=user_time.slot_count,
+            get_chip=str(Decimal(pick_result.money)),
+            own_chip=str(Decimal(await uow.chips.get(uid))),
+            remain_time=str(int(Decimal(user_time.slot_empty) - spent_count)),
+            max_time=str(int(Decimal(user_time.slot_count))),
             need_time=timedelta_text(
                 user_time.last_updated_timestamp + user_time.interval - time.time()
             ),
@@ -156,7 +157,7 @@ async def _(ctx: GroupContext):
         await uow.user_flag.add(uid, "是")
         utime = await uow_calculate_time(uow, uid)
         await StatService(uow).shi(uid)
-    if utime.slot_empty > 0:
+    if Decimal(utime.slot_empty) > 0:
         async with get_unit_of_work(ctx.sender_id) as uow:
             msg = await picks(uow, await get_user_data(ctx, uow), 1)
         await ctx.send(await render_catch_message(msg))

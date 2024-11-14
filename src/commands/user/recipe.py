@@ -44,7 +44,7 @@ from src.ui.types.recipe import RecipeInfo
 )
 @require_awake
 async def _(ctx: GroupContext, res: Arparma):
-    costs = {0: 20, 1: 3, 2: 8, 3: 12, 4: 15, 5: 17}
+    costs = {0: 20, 1: 3, 2: 8, 3: 12, 4: 15, 5: 17, 6: 20, 7: 25, 8: 30, 9: 40, 10: 100000000000000000000000000000000000000000000000000}
 
     n1 = res.query[str]("第一个石墩")
     n2 = res.query[str]("第二个石墩")
@@ -86,7 +86,7 @@ async def _(ctx: GroupContext, res: Arparma):
             # 乱码小哥，丢失
             info = await generate_random_info(uow)
             add = get_random().randint(1, 100)
-            data = GetAward(info=info, count=add, is_new=False)
+            data = GetAward(info=info, count=str(add), is_new=False)
             aft_stor = 0
         else:
             if aid == 35:
@@ -97,7 +97,7 @@ async def _(ctx: GroupContext, res: Arparma):
             add = get_random().randint(1, 3)
             data = GetAward(
                 info=info,
-                count=add,
+                count=str(add),
                 is_new=await uow.inventories.get_stats(uid, aid) == 0,
             )
             await uow.inventories.give(uid, aid, add)
@@ -175,7 +175,7 @@ def bind_dialog(
         else:
             flags = set((f"outlv{data.output.info.level.lid}",))
 
-    data.dialog = random.choice(get_dialog(dialog_from, flags))
+    data.dialog = random.choice(get_dialog(dialog_from, set((f"out9",))))
 
 
 @listen_message()
@@ -183,7 +183,7 @@ def bind_dialog(
 @match_alconna(Alconna("re:(合成|hc)(档案|da)", Arg("产物小哥", str)))
 @require_awake
 async def _(ctx: GroupContext, res: Arparma):
-    costs = {0: 1, 1: 2, 2: 4, 3: 8, 4: 16, 5: 32}
+    costs = {0: 1, 1: 2, 2: 4, 3: 8, 4: 16, 5: 32, 6:64, 7: 128, 8: 256, 9: 512,10: 10000000000000000000000000000000000000000}
 
     name = res.query[str]("产物小哥")
     if name == None:
@@ -303,7 +303,7 @@ async def _(ctx: GroupContext, res: Arparma):
                         possibility=recipe.possibility,
                         output=GetAward(
                             info=product,
-                            count=0,
+                            count=str(0),
                             is_new=False,
                         ),
                         recipe_id=recipes[i].recipe_id,
@@ -321,7 +321,7 @@ async def _(ctx: GroupContext, res: Arparma):
                         possibility=-1,
                         output=GetAward(
                             info=product,
-                            count=0,
+                            count=str(0),
                             is_new=False,
                         ),
                         recipe_id=0,

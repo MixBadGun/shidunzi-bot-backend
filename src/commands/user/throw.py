@@ -12,14 +12,16 @@ from src.services.stats import StatService
 
 FREQUENCY_LIMIT: dict[int, float] = {}
 
+LEVELS = "零一二三四五六七八九十"
 
-def generate_throw_message(sender_id: int, target: int, success: bool, count: int):
+def generate_throw_message(sender_id: int, target: int, success: bool, count: int, level: int):
+    display = LEVELS[level] if level != 1 else ""
     msg = (
         UniMessage
         .at(user_id=str(sender_id))
         .text(" 向 ")
         .at(user_id=str(target))
-        .text(" 丢出去了一个石墩子！")
+        .text(f" 丢出去了一个{display}石墩子！")
     )
     if success:
         msg.text("\n丢中了！炸得 ").at(target).text(" 的库存是灰飞烟灭，寸草不生，万万石墩尽成灰！").image(path="./res/boom.png")
@@ -35,6 +37,7 @@ async def analyze_throw_message(ctx: OnebotContext):
     is_throw = False
     is_poop = False
     target: set[int] = set()
+    level = 1
 
     for segment in ctx.message:
         if isinstance(segment, Text):
@@ -47,12 +50,15 @@ async def analyze_throw_message(ctx: OnebotContext):
             for i in ("丢", "扔", "抛", "吃", "赤", "吔", "叱", "持"):
                 if i in text:
                     is_throw = True
+            for i in "二三四五六七八九":
+                if i in text:
+                    level = LEVELS.find(i)
             # 根据否定词的个数来判断是否表确定意义。
             nope_count = 0
             for i in ("不", "别", "莫", "讨厌", "勿"):
                 nope_count += text.count(i)
             if nope_count % 2 == 1:
-                return
+                return None, None
         elif isinstance(segment, At):
             target.add(int(segment.target))
         elif isinstance(segment, Reply):
@@ -65,21 +71,21 @@ async def analyze_throw_message(ctx: OnebotContext):
                 res = await ctx.bot.call_api("get_msg", message_id=msgid)
                 sender_obj = res.get("sender", None)
                 if sender_obj is None:
-                    return
+                    return None, None
                 uid = sender_obj.get("user_id", None)
                 if uid is None:
-                    return
+                    return None, None
                 target.add(int(uid))
         elif isinstance(segment, Emoji):
             if segment.id == "59":
                 is_poop = True
         else:
-            return
+            return None, None
 
     if not is_throw or not is_poop or len(target) != 1:
-        return
+        return None, None
 
-    return target.pop()
+    return target.pop(), level
 
 
 @listen_message()
@@ -90,7 +96,7 @@ async def _(ctx: OnebotContext):
         return
     FREQUENCY_LIMIT[ctx.sender_id] = time.time()
 
-    target_qqid = await analyze_throw_message(ctx)
+    target_qqid, level = await analyze_throw_message(ctx)
 
     if target_qqid is None:
         return
@@ -102,13 +108,13 @@ async def _(ctx: OnebotContext):
         return
 
     # 扔粑粑
-    success = get_random().random() < 0.05
+    success = get_random().random() < (0.05 * level)
 
     async with get_unit_of_work(ctx.sender_id) as uow:
         fuid = await uow.users.get_uid(ctx.sender_id)
         tuid = await uow.users.get_uid(target_qqid)
 
-        poop = await uow.awards.get_aid("石墩子")
+        poop = await uow.awards.get_aid(LEVELS[level] + "石墩子")
         if poop is None:
             return
         await use_award(uow, fuid, poop, 1)
@@ -119,4 +125,4 @@ async def _(ctx: OnebotContext):
         stats = StatService(uow)
         await stats.throw_baba(fuid, tuid, success)
 
-    await ctx.send(generate_throw_message(ctx.sender_id, target_qqid, success, count))
+    await ctx.send(generate_throw_message(ctx.sender_id, target_qqid, success, count, level))

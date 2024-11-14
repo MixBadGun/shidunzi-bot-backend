@@ -6,7 +6,7 @@ from src.ui.types.inventory import BookBoxData
 
 class Product(BaseModel):
     title: str
-    price: int
+    price: str
 
 
 class ProductGroup(BaseModel):
@@ -18,11 +18,11 @@ class BuyData(BaseModel):
     date: str
     time: str
     user: UserData
-    remain_chips: int
+    remain_chips: str
     records: list[Product]
 
 
 class ShopDisplay(BaseModel):
     user: UserData
-    chips: int
+    chips: str
     products: list[ProductGroup]

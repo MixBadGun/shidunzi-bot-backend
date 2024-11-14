@@ -22,10 +22,10 @@ from src.ui.types.inventory import BookBoxData, DisplayBoxData
 from src.ui.types.xjshop import BuyData, Product, ProductGroup, ShopDisplay
 
 
-async def shop_default_message(user: UserData, shop: ShopFreezed, money: float):
+async def shop_default_message(user: UserData, shop: ShopFreezed, money: int):
     shop_data = ShopDisplay(
         user=user,
-        chips=int(money),
+        chips=str(money),
         products=[
             ProductGroup(
                 group_name=name,
@@ -36,7 +36,7 @@ async def shop_default_message(user: UserData, shop: ShopFreezed, money: float):
                         display_box=DisplayBoxData(
                             image=product.image.url,
                             color=product.background_color,
-                            notation_down=f"{int(product.price)}墩子",
+                            notation_down=f"{str(product.price)}墩子",
                             sold_out_overlay=product.is_sold_out,
                             black_overlay=product.is_sold_out,
                         ),
@@ -56,7 +56,7 @@ async def shop_default_message(user: UserData, shop: ShopFreezed, money: float):
 async def shop_buy_message(
     user: UserData,
     products: list[ShopProductFreezed],
-    remain: float,
+    remain: int,
 ):
     _date = now_datetime().strftime("%Y-%m-%d")
     _time = now_datetime().strftime("%H:%M:%S")
@@ -65,11 +65,11 @@ async def shop_buy_message(
         date=_date,
         time=_time,
         user=user,
-        remain_chips=int(remain),
+        remain_chips=str(remain),
         records=[
             Product(
                 title=e.title,
-                price=int(e.price),
+                price=str(e.price),
             )
             for e in products
         ],
@@ -114,7 +114,7 @@ async def _(ctx: MessageContext, res: Arparma[Any]):
                 uid=uid, qqid=str(ctx.sender_id), name=await ctx.sender_name
             )
 
-            costs: float = 0
+            costs: int = 0
             prods: list[ShopProductFreezed] = []
             for n in buys:
                 prod = shop[n]

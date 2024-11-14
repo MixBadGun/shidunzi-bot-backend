@@ -80,7 +80,7 @@ class UserData(BaseModel):
 
 class GetAward(BaseModel):
     info: AwardInfo
-    count: int
+    count: str
     is_new: bool
 
 

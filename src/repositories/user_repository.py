@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from decimal import Decimal
+from fractions import Fraction
 from sqlalchemy import insert, select, update
 
 from src.base.exceptions import LackException
@@ -65,11 +67,24 @@ class UserRepository(DBRepository):
             .where(User.data_id == uid)
             .values(
                 {
-                    User.slot_empty: count_remain,
+                    User.slot_empty: str(count_remain),
                     User.slot_last_time: last_calc,
                 }
             )
         )
+
+    async def get_slot_count(self, uid: int | str) -> int:
+        """获取用户的卡槽数量
+
+        Args:
+            qqid (int | str): 用户的 qqid
+
+        Returns:
+            int: 用户的 data_id
+        """
+        query = select(User.slot_count).filter(User.data_id == uid)
+        result = (await self.session.execute(query)).scalar_one()
+        return int(Decimal(result))
 
     async def add_slot_count(self, uid: int, count: int = 1):
         """为一个用户添加一个卡槽
@@ -79,10 +94,25 @@ class UserRepository(DBRepository):
             count (int, optional): 卡槽数量. Defaults to 1.
         """
 
+        delta = str(int(Decimal(await self.get_slot_count(uid)) + count))
         await self.session.execute(
             update(User)
             .where(User.data_id == uid)
-            .values({User.slot_count: User.slot_count + count})
+            .values({User.slot_count: delta})
+        )
+
+    async def add_speed_count(self, uid: int, count: int = 1):
+        """为一个用户添加加速次数
+
+        Args:
+            uid (int): 用户 ID
+            count (int, optional): 数量. Defaults to 1.
+        """
+
+        await self.session.execute(
+            update(User)
+            .where(User.data_id == uid)
+            .values({User.speed_count: User.speed_count + count})
         )
 
     async def get_sign_in_info(self, uid: int) -> tuple[float, int]:
@@ -198,9 +228,10 @@ class UserRepository(DBRepository):
 
 @dataclass
 class UserCatchTimeItself:
-    slot_count: int
-    slot_empty: int
+    slot_count: str
+    slot_empty: str
     last_updated_timestamp: float
+    speed_count: int
 
 
 class UserCatchTimeRepository(DBRepository):
@@ -213,32 +244,36 @@ class UserCatchTimeRepository(DBRepository):
             User.slot_count,
             User.slot_empty,
             User.slot_last_time,
+            User.speed_count
         ).where(User.data_id == uid)
         r = await self.session.execute(q)
-        slot_count, slot_empty, slot_calctime = r.tuples().one()
+        slot_count, slot_empty, slot_calctime, speed_count = r.tuples().one()
         return UserCatchTimeItself(
             slot_count=slot_count,
             slot_empty=slot_empty,
             last_updated_timestamp=slot_calctime,
+            speed_count = speed_count,
         )
 
 
 class ChipsRepository(DBRepository):
-    async def get(self, uid: int) -> float:
+    async def get(self, uid: int) -> int:
         """获得用户现在有多少薯片
 
         Args:
             uid (int): 用户 ID
 
         Returns:
-            float: 薯片数量
+            str: 薯片数量
         """
 
-        return (
-            await self.session.execute(select(User.chips).filter(User.data_id == uid))
-        ).scalar_one()
+        chips = (await self.session.execute(select(User.chips).filter(User.data_id == uid))).scalar_one()
 
-    async def set(self, uid: int, chips: float):
+        if "." in chips:
+            chips = Fraction(chips)
+        return int(chips)
+
+    async def set(self, uid: int, chips: int):
         """设置用户要有多少薯片
 
         Args:
@@ -247,10 +282,10 @@ class ChipsRepository(DBRepository):
         """
 
         await self.session.execute(
-            update(User).where(User.data_id == uid).values({User.chips: chips})
+            update(User).where(User.data_id == uid).values({User.chips: str(chips)})
         )
 
-    async def add(self, uid: int, chips: float):
+    async def add(self, uid: int, chips: int):
         """增加用户的薯片数量
 
         Args:
@@ -258,9 +293,9 @@ class ChipsRepository(DBRepository):
             money (float): 薯片数量
         """
 
-        await self.set(uid, (await self.get(uid)) + chips)
+        await self.set(uid, int((await self.get(uid)) + int(chips)))
 
-    async def use(self, uid: int, chips: float, report: bool = True) -> float:
+    async def use(self, uid: int, chips: int, report: bool = True) -> int:
         """消耗薯片
 
         Args:

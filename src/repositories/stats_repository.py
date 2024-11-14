@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Iterable, Literal
 from datetime import datetime
 
@@ -11,7 +12,7 @@ from src.models.stats import StatRecord
 class StatData(BaseModel):
     uid: int | None
     stat_type: str
-    count: int
+    count: str
     linked_uid: int | None
     linked_aid: int | None
     linked_sid: int | None
@@ -45,7 +46,7 @@ class StatsRepository(DBRepository):
                 {
                     StatRecord.stat_from: uid,
                     StatRecord.stat_type: stat_type,
-                    StatRecord.count: count,
+                    StatRecord.count: str(count),
                     StatRecord.linked_uid: linked_uid,
                     StatRecord.linked_aid: linked_aid,
                     StatRecord.linked_sid: linked_sid,
@@ -311,7 +312,7 @@ class StatsRepository(DBRepository):
         query = (
             update(StatRecord)
             .where(StatRecord.data_id == stat_id)
-            .values({StatRecord.count: StatRecord.count + delta})
+            .values({StatRecord.count: str(Decimal((await self.get_data(stat_id)).count) + delta)})
         )
         await self.session.execute(query)
 
